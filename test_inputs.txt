@@ -1,51 +1,46 @@
-PERSONAL INFO PROJECT - TEST INPUTS
+PERSONAL INFORMATION MANAGER - TEST CASES
 
 Test Case 1 - Valid Input
 Favorite Food: Biryani
 Favorite Color: Blue
 
 Expected Result:
-Program displays personal information successfully.
+Program displays all information correctly.
 
---------------------------------------------------------------------------------------
-
+---
 
 Test Case 2 - Empty Food
 Favorite Food:
 Favorite Color: Blue
 
 Expected Result:
-please enter your favorite food.
+Favorite food cannot be empty.
 
-
----------------------------------------------------------------------------------------
-
+---
 
 Test Case 3 - Empty Color
 Favorite Food: Pizza
 Favorite Color:
 
 Expected Result:
-please enter your favorite color.
+Favorite color cannot be empty.
 
-----------------------------------------------------------------------------------------
+---
 
 Test Case 4 - Both Empty
 Favorite Food:
 Favorite Color:
 
 Expected Result:
-please enter your favorite food.
-please enter your favorite color.
+Program asks again for both inputs.
 
-------------------------------------------------------------------------------------------
+---
 
 Test Case 5 - Very Long Input
-Favorite Food: BiryaniBiryaniBiryaniBiryaniBiryaniBiryani
-Favorite Color: BlueBlueBlueBlueBlueBlueBlueBlue
+Favorite Food: BiryaniBiryaniBiryaniBiryaniBiryani
+Favorite Color: BlueBlueBlueBlueBlueBlueBlue
 
 Expected Result:
-Program accepts input and displays information.
-
+Program displays the information without errors.
 
 
