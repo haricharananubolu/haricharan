@@ -24,12 +24,12 @@ print("_______________________")
 print("FAVORITE FOOD")
 print("________________________")
 favorite_food=input("what is your favorite food?")
-while  favorite_food=="":
+while  favorite_food.strip()=="":
     print("please enter your favorite food.")
     favorite_food=input("enter you favorite food?")
    
 favorite_color=input("what is your favorite color?")
-while favorite_color=="":
+while favorite_color.strip()=="":
     print("please enter your favorite color:")
     favorite_color=input("enter your favorite color?")
 
