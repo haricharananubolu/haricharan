@@ -1,107 +1,93 @@
-from expenses import Expense, ExpenseManager
-import file_handler
-import reports
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-def get_input(prompt: str, validator_func) -> str:
-    while True:
-        data = input(prompt).strip()
-        try:
-            return validator_func(data)
-        except ValueError as e:
-            print(f"Input Error: {e}")
+from library_system.library import Library
 
-def display_expenses(expenses):
-    if not expenses:
-        print("No records found.")
-        return
-    print(f"\n{'ID':<5} | {'Date':<12} | {'Category':<15} | {'Amount':<10} | {'Description'}")
-    print("-" * 65)
-    for idx, e in enumerate(expenses):
-        print(f"{idx:<5} | {e.date:<12} | {e.category:<15} | ${e.amount:<9.2f} | {e.description}")
+def print_interface():
+    print("\n" + "="*45)
+    print("         LIBRARY TERMINAL INTERFACE        ")
+    print("="*45)
+    print(" 1. Add a New Book")
+    print(" 2. Register a New Member")
+    print(" 3. Check Out / Borrow a Book")
+    print(" 4. Return a Book")
+    print(" 5. Search Book Inventory")
+    print(" 6. View Library Metrics Dashboard")
+    print(" 7. Run Instant Secure Database Backup")
+    print(" 8. Exit System")
+    print("="*45)
 
 def main():
-    manager = ExpenseManager()
-    file_handler.load_from_json(manager)
+    lib = Library()
     
     while True:
-        print("\n===== EXPENSE TRACKER MENU =====")
-        print("1. Add Expense")
-        print("2. View All Expenses")
-        print("3. Delete Expense")
-        print("4. Search Expenses")
-        print("5. Set Category Budget")
-        print("6. View Reports & Predictions")
-        print("7. Export to CSV")
-        print("8. Import from CSV")
-        print("9. Exit")
+        print_interface()
+        choice = input("Enter option (1-8): ").strip()
         
-        choice = input("Select an option (1-9): ").strip()
-        
-        if choice == "1":
-            date = get_input("Enter date (YYYY-MM-DD): ", Expense.validate_date)
-            amount_str = get_input("Enter amount: ", Expense.validate_amount)
-            category = get_input("Enter category: ", lambda x: Expense.validate_string(x, "Category"))
-            desc = get_input("Enter description: ", lambda x: Expense.validate_string(x, "Description"))
+        if choice == '1':
+            print("\n--- Add Book ---")
+            title = input("Title: ").strip()
+            author = input("Author: ").strip()
+            isbn = input("ISBN Code: ").strip()
+            year = input("Publication Year (Optional): ").strip()
             
-            exp = Expense(date, float(amount_str), category, desc)
-            alert = manager.add_expense(exp)
-            file_handler.save_to_json(manager)
-            print(alert)
-            
-        elif choice == "2":
-            display_expenses(manager.expenses)
-            
-        elif choice == "3":
-            display_expenses(manager.expenses)
-            if manager.expenses:
-                try:
-                    idx = int(input("\nEnter ID to delete: "))
-                    if manager.remove_expense(idx):
-                        file_handler.save_to_json(manager)
-                        print("Expense removed successfully.")
-                    else:
-                        print("Invalid ID.")
-                except ValueError:
-                    print("Please enter a valid numeric ID.")
-                    
-        elif choice == "4":
-            query = input("Enter keyword search string: ")
-            cat_filter = input("Filter by specific category? (Leave blank for all): ").strip()
-            cat_filter = cat_filter if cat_filter else None
-            results = manager.search_expenses(query, cat_filter)
-            display_expenses(results)
-            
-        elif choice == "5":
-            category = input("Enter category name: ").strip()
-            try:
-                amt = float(input(f"Set maximum monthly budget for {category}: "))
-                manager.set_budget(category, amt)
-                file_handler.save_to_json(manager)
-                print(f"Budget for {category} set to ${amt:.2f}")
-            except ValueError:
-                print("Invalid budget input amount.")
-                
-        elif choice == "6":
-            if not manager.expenses:
-                print("No records available to analyze.")
+            if not title or not author or not isbn:
+                print("Error: Fields cannot be empty.")
                 continue
-            reports.generate_monthly_summary(manager)
-            reports.generate_category_breakdown(manager)
-            reports.generate_trend_analysis(manager)
+            _, msg = lib.add_book(title, author, isbn, year if year else None)
+            print(msg)
             
-        elif choice == "7":
-            filename = input("Enter destination CSV file name (e.g., export.csv): ").strip()
-            file_handler.export_to_csv(manager, filename if filename else "export.csv")
+        elif choice == '2':
+            print("\n--- Register Member ---")
+            name = input("Full Name: ").strip()
+            uid = input("Create Member ID: ").strip()
             
-        elif choice == "8":
-            filename = input("Enter source CSV file path: ").strip()
-            file_handler.import_from_csv(manager, filename)
+            if not name or not uid:
+                print("Error: Name and ID are required.")
+                continue
+            _, msg = lib.register_member(name, uid)
+            print(msg)
             
-        elif choice == "9":
-            print("Goodbye!")
+        elif choice == '3':
+            print("\n--- Book Loan Check-Out ---")
+            uid = input("Member ID: ").strip()
+            isbn = input("Book ISBN: ").strip()
+            _, msg = lib.library_borrow(uid, isbn)
+            print(msg)
+            
+        elif choice == '4':
+            print("\n--- Return Processing ---")
+            isbn = input("Book ISBN to return: ").strip()
+            _, msg = lib.library_return(isbn)
+            print(msg)
+            
+        elif choice == '5':
+            print("\n--- Search Inventory ---")
+            query = input("Search keyword (Title/Author/ISBN): ").strip()
+            if not query:
+                continue
+            results = lib.search_books(query)
+            print(f"\nFound ({len(results)}) matching items:")
+            for idx, item in enumerate(results, 1):
+                print(f" {idx}. {item}")
+                
+        elif choice == '6':
+            print("\n--- Library Statistics ---")
+            stats = lib.get_statistics()
+            for key, val in stats.items():
+                print(f" * {key.replace('_', ' ').title()}: {val}")
+                
+        elif choice == '7':
+            print("\n--- Backup Control Panel ---")
+            _, msg = lib.trigger_backup()
+            print(msg)
+            
+        elif choice == '8':
+            print("\nExiting library console application. Data saved safely.")
             break
         else:
-            print("Invalid choice selection. Try again.")
+            print("Invalid input selection. Choose 1 through 8.")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
