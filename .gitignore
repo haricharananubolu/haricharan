@@ -1,6 +1,4 @@
+.env
 __pycache__/
 *.pyc
-.pytest_cache/
-data/books.json
-data/members.json
-data/backup/*.json
+data/cache/

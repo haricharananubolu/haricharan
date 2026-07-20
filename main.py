@@ -1,93 +1,47 @@
 import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from library_system.library import Library
-
-def print_interface():
-    print("\n" + "="*45)
-    print("         LIBRARY TERMINAL INTERFACE        ")
-    print("="*45)
-    print(" 1. Add a New Book")
-    print(" 2. Register a New Member")
-    print(" 3. Check Out / Borrow a Book")
-    print(" 4. Return a Book")
-    print(" 5. Search Book Inventory")
-    print(" 6. View Library Metrics Dashboard")
-    print(" 7. Run Instant Secure Database Backup")
-    print(" 8. Exit System")
-    print("="*45)
+from weather_app.config import API_KEY
+from weather_app.weather_api import WeatherAPI
+from weather_app.weather_parser import WeatherParser
+from weather_app.weather_display import WeatherDisplay
 
 def main():
-    lib = Library()
+    if not API_KEY or "your_api_key" in API_KEY:
+        print("❌ CRITICAL: Please update your .env file with a valid API Key from OpenWeatherMap.")
+        sys.exit(1)
+        
+    api = WeatherAPI(api_key=API_KEY)
+    current_city = "London"  # Default startup city
     
     while True:
-        print_interface()
-        choice = input("Enter option (1-8): ").strip()
+        # Fetch operations
+        raw_current = api.get_current_weather(current_city)
+        raw_forecast = api.get_forecast(current_city)
         
-        if choice == '1':
-            print("\n--- Add Book ---")
-            title = input("Title: ").strip()
-            author = input("Author: ").strip()
-            isbn = input("ISBN Code: ").strip()
-            year = input("Publication Year (Optional): ").strip()
+        if raw_current and raw_forecast:
+            parsed_current = WeatherParser.parse_current(raw_current)
+            parsed_forecast = WeatherParser.parse_forecast(raw_forecast)
             
-            if not title or not author or not isbn:
-                print("Error: Fields cannot be empty.")
-                continue
-            _, msg = lib.add_book(title, author, isbn, year if year else None)
-            print(msg)
-            
-        elif choice == '2':
-            print("\n--- Register Member ---")
-            name = input("Full Name: ").strip()
-            uid = input("Create Member ID: ").strip()
-            
-            if not name or not uid:
-                print("Error: Name and ID are required.")
-                continue
-            _, msg = lib.register_member(name, uid)
-            print(msg)
-            
-        elif choice == '3':
-            print("\n--- Book Loan Check-Out ---")
-            uid = input("Member ID: ").strip()
-            isbn = input("Book ISBN: ").strip()
-            _, msg = lib.library_borrow(uid, isbn)
-            print(msg)
-            
-        elif choice == '4':
-            print("\n--- Return Processing ---")
-            isbn = input("Book ISBN to return: ").strip()
-            _, msg = lib.library_return(isbn)
-            print(msg)
-            
-        elif choice == '5':
-            print("\n--- Search Inventory ---")
-            query = input("Search keyword (Title/Author/ISBN): ").strip()
-            if not query:
-                continue
-            results = lib.search_books(query)
-            print(f"\nFound ({len(results)}) matching items:")
-            for idx, item in enumerate(results, 1):
-                print(f" {idx}. {item}")
-                
-        elif choice == '6':
-            print("\n--- Library Statistics ---")
-            stats = lib.get_statistics()
-            for key, val in stats.items():
-                print(f" * {key.replace('_', ' ').title()}: {val}")
-                
-        elif choice == '7':
-            print("\n--- Backup Control Panel ---")
-            _, msg = lib.trigger_backup()
-            print(msg)
-            
-        elif choice == '8':
-            print("\nExiting library console application. Data saved safely.")
-            break
+            # Render View
+            WeatherDisplay.show_dashboard(parsed_current, parsed_forecast)
         else:
-            print("Invalid input selection. Choose 1 through 8.")
+            print("⚠️ Could not fetch complete weather profiles for your query.")
 
-if __name__ == '__main__':
+        # User Input Interaction block
+        user_choice = input("\nType 'refresh' to update, 'search' for a new city, or 'quit': ").strip().lower()
+        
+        if user_choice == 'quit':
+            print("Thank you for using the Weather Dashboard. Goodbye!")
+            break
+        elif user_choice == 'refresh':
+            print(f"Refreshing data for {current_city}...")
+            # Forcing network fetch by ignoring cache could be done here, or let cache expire naturally
+            continue
+        elif user_choice == 'search':
+            new_city = input("Enter city name: ").strip()
+            if new_city:
+                current_city = new_city
+        else:
+            print("Invalid instruction. Defaulting back to home loop.")
+
+if __name__ == "__main__":
     main()
